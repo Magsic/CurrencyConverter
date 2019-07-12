@@ -10,74 +10,94 @@ export class Converter extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			currentCount: 0,
 			date: new Date(),
-			//originCurrency: "---",
-			//destinationCurrency: "HRK"
+			originCurrency: "---",
+			destinationCurrency: "HRK",
+			allCurrencies: ["HRK", "AUD", "EUR"]
 		};
-		this.incrementCounter = this.incrementCounter.bind(this);
 		this.handleDateChange = this.handleDateChange.bind(this);
-		//this.setOriginCurrency = this.setOriginCurrency.bind(this);
-		//this.setDestinationCurrency = this.setDestinationCurrency.bind(this);
+		this.setOriginCurrency = this.setOriginCurrency.bind(this);
+		this.setDestinationCurrency = this.setDestinationCurrency.bind(this);
+		this.doConversion = this.doConversion.bind(this);
 	}
 
-	incrementCounter() {
-		this.setState({
-			currentCount: this.state.currentCount + 1,
-			date: this.state.date,
-			//originCurrency: this.state.originCurrency,
-			//destinationCurrency: this.state.destinationCurrency
-		});
+	componentDidMount() {
+		fetch('/Rates/GetCurrencies')
+			.then(response => response.json())
+			.then(data => this.setState({
+				date: this.state.date,
+				originCurrency: this.state.originCurrency,
+				destinationCurrency: this.state.destinationCurrency,
+				allCurrencies: data
+			}));
 	}
 
 	handleDateChange(date) {
 		this.setState({
-			currentCount: this.state.currentCount,
 			date: date,
-			//originCurrency: this.state.originCurrency,
-			//destinationCurrency: this.state.destinationCurrency
+			originCurrency: this.state.originCurrency,
+			destinationCurrency: this.state.destinationCurrency
 		})
 	}
 
-	//setOriginCurrency(currency) {
-	//	this.setState({
-	//		currentCount: this.state.currentCount,
-	//		date: this.state.date,
-	//		originCurrency: currency[0],
-	//		destinationCurrency: this.state.destinationCurrency
-	//	})
-	//}
+	setOriginCurrency(event) {
+		this.setState({
+			date: this.state.date,
+			originCurrency: event.target.value,
+			destinationCurrency: this.state.destinationCurrency
+		})
+	}
 
-	//setDestinationCurrency(currency) {
-	//	this.setState({
-	//		currentCount: this.state.currentCount,
-	//		date: this.state.date,
-	//		originCurrency: this.state.originCurrency,
-	//		destinationCurrency: currency[0]
-	//	})
-	//}
+	setDestinationCurrency(event) {
+		this.setState({
+			date: this.state.date,
+			originCurrency: this.state.originCurrency,
+			destinationCurrency: event.target.value
+		})
+	}
+
+	doConversion() {
+
+	}
 
 	render() {
+		var options = ["---", ...this.state.allCurrencies];
+		var originOptions = options.map(c => <option key={c} value={c}>{c}</option>);
+		var destinationOptions = this.state.allCurrencies.map(c => <option key={c} value={c}>{c}</option>);
+
 		return (
 			<div>
 				<h1>Converter</h1>
+				<br />
 
-				<p>Current count: <strong>{this.state.currentCount}</strong></p>
+				<div>
+					<DatePicker
+						maxDate={new Date()}
+						selected={this.state.date}
+						onChange={this.handleDateChange}
+					/>
+				</div>
 
-				<DatePicker
-					maxDate={new Date()}
-					selected={this.state.date}
-					onChange={this.handleDateChange}
-				/>
+				<br />
+				<div>
+					<input defaultValue="1" step="0.1" min="0" type="number"></input>
 
-				<input type="text"></input>
-				<input disabled type="text"></input>
+					<select value={this.state.originCurrency} onChange={this.setOriginCurrency} >
+						{originOptions}
+					</select>
+				</div>
+				<br />
 
-				<button className="btn btn-primary" onClick={this.incrementCounter}>Increment</button>
+				<div>
+					<input disabled type="text"></input>
+
+					<select value={this.state.destinationCurrency} onChange={this.setDestinationCurrency} >
+						{destinationOptions}
+					</select>
+				</div>
+				<br/>
+				<button onClick={this.doConversion}>Converte</button>
 			</div>
 		);
 	}
 }
-//<Dropdown options={["---", "HRK", "AUD", "EUR"]} onChange={(currency) => this.setOriginCurrency(currency)} />
-
-//<Dropdown options={["HRK", "AUD", "EUR"]} onChange={(currency) => this.setDestinationCurrency(currency)} />

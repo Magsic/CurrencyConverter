@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CurrencyConverter.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CurrencyConverter.Controllers
 {
@@ -14,17 +15,20 @@ namespace CurrencyConverter.Controllers
             return View();
         }
 
-		public List<Currency> GetCurrencies()
+		public List<string> GetCurrencies()
 		{
-			var context = new CurrencyContext();
-			List<Currency> currencies = new List<Currency>();
+			var optionsBuilder = new DbContextOptionsBuilder<CurrencyContext>();
+			optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=CurrencyConverter.AspNetCore.Db;Trusted_Connection=True;ConnectRetryCount=0");
+
+			var context = new CurrencyContext(optionsBuilder.Options);
+			List<string> currencyNames = new List<string>();
 
 			foreach (var currency in context.Currencies)
 			{
-				currencies.Add(currency);
+				currencyNames.Add(currency.Name);
 			}
 
-			return currencies;
+			return currencyNames;
 		}
 
 		public IActionResult Get(Currency sourceCurrency, Currency destinationCurrency, DateTime rateDate)
