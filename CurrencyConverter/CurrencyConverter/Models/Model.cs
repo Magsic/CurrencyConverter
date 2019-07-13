@@ -86,6 +86,11 @@ namespace CurrencyConverter.Models
 				{
 					Id = 14,
 					Name = "PLN"
+				},
+				new Currency
+				{
+					Id = 15,
+					Name = "HRK"
 				}
 			);
 		}

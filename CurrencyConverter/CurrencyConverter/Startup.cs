@@ -26,8 +26,7 @@ namespace CurrencyConverter
 
 			var connection = @"Server=(localdb)\mssqllocaldb;Database=CurrencyConverter.AspNetCore.Db;Trusted_Connection=True;ConnectRetryCount=0";
 
-			services.AddDbContext<CurrencyContext>
-				(options => options.UseSqlServer(connection));
+			services.AddDbContext<CurrencyContext>(options => options.UseSqlServer(connection));
 
 			// In production, the React files will be served from this directory
 			services.AddSpaStaticFiles(configuration =>
