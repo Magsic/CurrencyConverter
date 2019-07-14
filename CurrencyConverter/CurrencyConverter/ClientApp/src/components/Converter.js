@@ -1,7 +1,5 @@
 ﻿import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
-//import Dropdown from 'react-dropdown-select';
-
 import "react-datepicker/dist/react-datepicker.css";
 
 export class Converter extends Component {
@@ -22,6 +20,8 @@ export class Converter extends Component {
 		this.setSourceCurrency = this.setSourceCurrency.bind(this);
 		this.setDestinationCurrency = this.setDestinationCurrency.bind(this);
 		this.doConversion = this.doConversion.bind(this);
+		this.switchCurrencies = this.switchCurrencies.bind(this);
+		this.reset = this.reset.bind(this);
 	}
 
 	componentDidMount() {
@@ -64,6 +64,24 @@ export class Converter extends Component {
 			}));
 	}
 
+	switchCurrencies() {
+		this.setState({
+			sourceCurrency: this.state.destinationCurrency,
+			destinationCurrency: this.state.sourceCurrency
+		});
+	}
+
+	reset() {
+		this.setState({
+			date: new Date(),
+			amount: 1,
+			sourceCurrency: "---",
+			destinationCurrency: "HRK",
+			allCurrencies: this.state.allCurrencies,
+			convertedValue: ""
+		});
+	}
+
 	render() {
 		var options = ["---", ...this.state.allCurrencies];
 		var sourceOptions = options.map(c => <option key={c} value={c}>{c}</option>);
@@ -74,6 +92,10 @@ export class Converter extends Component {
 				<h1>Converter</h1>
 				<br />
 
+				<button onClick={this.reset}>Reset</button>
+				<br />
+				<br />
+
 				<div>
 					<DatePicker
 						maxDate={new Date()}
@@ -81,8 +103,8 @@ export class Converter extends Component {
 						onChange={this.handleDateChange}
 					/>
 				</div>
-
 				<br />
+
 				<div>
 					<input onChange={this.handleAmountChange}
 						value={this.state.amount}
@@ -97,6 +119,10 @@ export class Converter extends Component {
 				</div>
 				<br />
 
+				<button onClick={this.switchCurrencies}>Switch</button>
+				<br/>
+				<br/>
+
 				<div>
 					<input disabled value={this.state.convertedValue} type="text"></input>
 
@@ -105,6 +131,7 @@ export class Converter extends Component {
 					</select>
 				</div>
 				<br />
+
 				<button onClick={this.doConversion}>Converte</button>
 			</div>
 		);

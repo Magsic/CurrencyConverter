@@ -102,6 +102,7 @@ namespace CurrencyConverter.Controllers
 				});
 
 			context.SaveChanges();
+			rate = Math.Round(rate, 3);
 			return rate;
 		}
 	}
