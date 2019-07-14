@@ -36,7 +36,7 @@ namespace CurrencyConverter.Controllers
 			return context.Currencies.Select(c => c.Name).ToList();
 		}
 
-		public async Task<double> GetRate(string sourceCurrency, string destinationCurrency, DateTime rateDate, double amount)
+		public async Task<double> GetRate(string sourceCurrency, string destinationCurrency, DateTime rateDate, double amount = 1)
 		{
 			if (sourceCurrency == "---")
 				return 0;
@@ -50,7 +50,7 @@ namespace CurrencyConverter.Controllers
 				return amount * rate;
 			}
 
-			if(sourceCurrency == "HRK")
+			if (sourceCurrency == "HRK")
 			{
 				double rate = await getRate(destinationCurrency, rateDate);
 				return amount / rate;
@@ -66,12 +66,12 @@ namespace CurrencyConverter.Controllers
 		{
 			RateByDate rateByDate = context.Rates.Where(r => r.Date == date && r.Currency.Name == currency).FirstOrDefault();
 			if (rateByDate == null)
-				return await populateDb(currency, date);
+				return await populateDbRatesFromHNB(currency, date);
 			else
 				return rateByDate.Rate;
 		}
 
-		private async Task<double> populateDb(string currency, DateTime rateDate)
+		private async Task<double> populateDbRatesFromHNB(string currency, DateTime rateDate)
 		{
 			var formatedDate = rateDate.ToString("yyyy-MM-dd");
 			string responseBody = "";
@@ -104,6 +104,54 @@ namespace CurrencyConverter.Controllers
 			context.SaveChanges();
 			rate = Math.Round(rate, 3);
 			return rate;
+		}
+
+		public void StoreStats(string currencyName, DateTime conversionDate)
+		{
+			Currency currency = context.Currencies.Where(c => c.Name == currencyName).FirstOrDefault();
+			DateTime date = conversionDate.Date;
+
+			Statistics currencyStatistics = context.Statistics.Where(s => s.Currency == currency && s.Date == date).FirstOrDefault();
+			if (currencyStatistics == null)
+			{
+				context.Statistics.Add(new Statistics
+				{
+					ConvertCount = 1,
+					Currency = currency,
+					Date = date
+				});
+			}
+			else
+			{
+				currencyStatistics.ConvertCount += 1;
+			}
+
+			context.SaveChanges();
+		}
+
+		public string GetMostUsedCurrency()
+		{
+			var days = 7;
+			DateTime threshold = DateTime.Today.AddDays(-days);
+
+			var data = context.Statistics
+				.Where(s => s.Date > threshold)
+				.GroupBy(s => s.Currency)
+				.ToList();
+
+			if (!data.Any())
+				return "---";
+
+			var mostUsed = data
+				.Select(g => new
+				{
+					Currency = g.Key,
+					Sum = g.Sum(s => s.ConvertCount)
+				})
+				.OrderByDescending(o => o.Sum)
+				.FirstOrDefault();
+
+			return mostUsed?.Currency.Name;
 		}
 	}
 }

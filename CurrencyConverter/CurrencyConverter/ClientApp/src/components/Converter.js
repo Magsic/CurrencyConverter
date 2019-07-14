@@ -10,9 +10,10 @@ export class Converter extends Component {
 		this.state = {
 			date: new Date(),
 			amount: 1,
+			mostUsedCurrency: "---",
 			sourceCurrency: "---",
 			destinationCurrency: "HRK",
-			allCurrencies: ["HRK", "AUD", "EUR"],
+			allCurrencies: [],
 			convertedValue: ""
 		};
 		this.handleDateChange = this.handleDateChange.bind(this);
@@ -29,6 +30,13 @@ export class Converter extends Component {
 			.then(response => response.json())
 			.then(data => this.setState({
 				allCurrencies: data
+			}));
+
+		fetch('/Rates/GetMostUsedCurrency')
+			.then(response => response.text())
+			.then(data => this.setState({
+				sourceCurrency: data,
+				mostUsedCurrency: data
 			}));
 	}
 
@@ -62,6 +70,8 @@ export class Converter extends Component {
 			.then(data => this.setState({
 				convertedValue: data
 			}));
+
+		fetch(`/Rates/StoreStats?currencyName=${this.state.sourceCurrency}&conversionDate=${(new Date()).toISOString()}`);
 	}
 
 	switchCurrencies() {
@@ -75,7 +85,7 @@ export class Converter extends Component {
 		this.setState({
 			date: new Date(),
 			amount: 1,
-			sourceCurrency: "---",
+			sourceCurrency: this.state.mostUsedCurrency,
 			destinationCurrency: "HRK",
 			allCurrencies: this.state.allCurrencies,
 			convertedValue: ""
@@ -132,7 +142,7 @@ export class Converter extends Component {
 				</div>
 				<br />
 
-				<button onClick={this.doConversion}>Converte</button>
+				<button onClick={this.doConversion}>Convert</button>
 			</div>
 		);
 	}

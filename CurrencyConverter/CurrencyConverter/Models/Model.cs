@@ -13,6 +13,7 @@ namespace CurrencyConverter.Models
 
 		public DbSet<Currency> Currencies { get; set; }
 		public DbSet<RateByDate> Rates { get; set; }
+		public DbSet<Statistics> Statistics { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
