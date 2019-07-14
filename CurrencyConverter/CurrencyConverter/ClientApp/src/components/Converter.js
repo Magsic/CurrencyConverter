@@ -11,12 +11,15 @@ export class Converter extends Component {
 		super(props);
 		this.state = {
 			date: new Date(),
-			originCurrency: "---",
+			amount: 1,
+			sourceCurrency: "---",
 			destinationCurrency: "HRK",
-			allCurrencies: ["HRK", "AUD", "EUR"]
+			allCurrencies: ["HRK", "AUD", "EUR"],
+			convertedValue: ""
 		};
 		this.handleDateChange = this.handleDateChange.bind(this);
-		this.setOriginCurrency = this.setOriginCurrency.bind(this);
+		this.handleAmountChange = this.handleAmountChange.bind(this);
+		this.setSourceCurrency = this.setSourceCurrency.bind(this);
 		this.setDestinationCurrency = this.setDestinationCurrency.bind(this);
 		this.doConversion = this.doConversion.bind(this);
 	}
@@ -25,44 +28,45 @@ export class Converter extends Component {
 		fetch('/Rates/GetCurrencies')
 			.then(response => response.json())
 			.then(data => this.setState({
-				date: this.state.date,
-				originCurrency: this.state.originCurrency,
-				destinationCurrency: this.state.destinationCurrency,
 				allCurrencies: data
 			}));
 	}
 
 	handleDateChange(date) {
 		this.setState({
-			date: date,
-			originCurrency: this.state.originCurrency,
-			destinationCurrency: this.state.destinationCurrency
-		})
+			date
+		});
 	}
 
-	setOriginCurrency(event) {
+	handleAmountChange(event) {
 		this.setState({
-			date: this.state.date,
-			originCurrency: event.target.value,
-			destinationCurrency: this.state.destinationCurrency
-		})
+			amount: event.target.value
+		});
+	}
+
+	setSourceCurrency(event) {
+		this.setState({
+			sourceCurrency: event.target.value
+		});
 	}
 
 	setDestinationCurrency(event) {
 		this.setState({
-			date: this.state.date,
-			originCurrency: this.state.originCurrency,
 			destinationCurrency: event.target.value
-		})
+		});
 	}
 
 	doConversion() {
-
+		fetch(`/Rates/GetRate?sourceCurrency=${this.state.sourceCurrency}&destinationCurrency=${this.state.destinationCurrency}&rateDate=${this.state.date.toISOString()}&amount=${this.state.amount}`)
+			.then(response => response.json())
+			.then(data => this.setState({
+				convertedValue: data
+			}));
 	}
 
 	render() {
 		var options = ["---", ...this.state.allCurrencies];
-		var originOptions = options.map(c => <option key={c} value={c}>{c}</option>);
+		var sourceOptions = options.map(c => <option key={c} value={c}>{c}</option>);
 		var destinationOptions = this.state.allCurrencies.map(c => <option key={c} value={c}>{c}</option>);
 
 		return (
@@ -80,22 +84,27 @@ export class Converter extends Component {
 
 				<br />
 				<div>
-					<input defaultValue="1" step="0.1" min="0" type="number"></input>
+					<input onChange={this.handleAmountChange}
+						value={this.state.amount}
+						step="0.1"
+						min="0"
+						type="number"
+					/>
 
-					<select value={this.state.originCurrency} onChange={this.setOriginCurrency} >
-						{originOptions}
+					<select value={this.state.sourceCurrency} onChange={this.setSourceCurrency} >
+						{sourceOptions}
 					</select>
 				</div>
 				<br />
 
 				<div>
-					<input disabled type="text"></input>
+					<input disabled value={this.state.convertedValue} type="text"></input>
 
 					<select value={this.state.destinationCurrency} onChange={this.setDestinationCurrency} >
 						{destinationOptions}
 					</select>
 				</div>
-				<br/>
+				<br />
 				<button onClick={this.doConversion}>Converte</button>
 			</div>
 		);

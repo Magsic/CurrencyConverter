@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CurrencyConverter.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace CurrencyConverter.Controllers
@@ -33,26 +31,47 @@ namespace CurrencyConverter.Controllers
 			return View();
 		}
 
-		public async Task<List<string>> GetCurrencies()
+		public List<string> GetCurrencies()
 		{
-			List<string> currencyNames = new List<string>();
+			return context.Currencies.Select(c => c.Name).ToList();
+		}
 
-			foreach (var currency in context.Currencies)
+		public async Task<double> GetRate(string sourceCurrency, string destinationCurrency, DateTime rateDate, double amount)
+		{
+			if (sourceCurrency == "---")
+				return 0;
+
+			if (sourceCurrency == destinationCurrency)
+				return amount;
+
+			if (destinationCurrency == "HRK")
 			{
-				currencyNames.Add(currency.Name);
+				double rate = await getRate(sourceCurrency, rateDate);
+				return amount * rate;
 			}
 
-			await populateDb("EUR", new DateTime(2019, 7, 9));
+			if(sourceCurrency == "HRK")
+			{
+				double rate = await getRate(destinationCurrency, rateDate);
+				return amount / rate;
+			}
 
-			return currencyNames;
+			double sourceRate = await getRate(sourceCurrency, rateDate);
+			double destinationRate = await getRate(destinationCurrency, rateDate);
+
+			return (amount * sourceRate) / destinationRate;
 		}
 
-		public IActionResult Get(Currency sourceCurrency, Currency destinationCurrency, DateTime rateDate)
+		private async Task<double> getRate(string currency, DateTime date)
 		{
-			return null;
+			RateByDate rateByDate = context.Rates.Where(r => r.Date == date && r.Currency.Name == currency).FirstOrDefault();
+			if (rateByDate == null)
+				return await populateDb(currency, date);
+			else
+				return rateByDate.Rate;
 		}
 
-		private async Task populateDb(string currency, DateTime rateDate)
+		private async Task<double> populateDb(string currency, DateTime rateDate)
 		{
 			var formatedDate = rateDate.ToString("yyyy-MM-dd");
 			string responseBody = "";
@@ -61,11 +80,6 @@ namespace CurrencyConverter.Controllers
 				HttpResponseMessage response = await client.GetAsync($"http://api.hnb.hr/tecajn/v2?valuta={currency}&datum-primjene={formatedDate}");
 				response.EnsureSuccessStatusCode();
 				responseBody = await response.Content.ReadAsStringAsync();
-				// Above three lines can be replaced with new helper method below
-				// string responseBody = await client.GetStringAsync(uri);
-
-				Debug.WriteLine(responseBody);
-
 			}
 			catch (HttpRequestException e)
 			{
@@ -88,6 +102,7 @@ namespace CurrencyConverter.Controllers
 				});
 
 			context.SaveChanges();
+			return rate;
 		}
 	}
 }
