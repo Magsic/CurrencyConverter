@@ -68,13 +68,15 @@ export class Converter extends Component {
 		fetch(`/Rates/GetRate?sourceCurrency=${this.state.sourceCurrency}&destinationCurrency=${this.state.destinationCurrency}&rateDate=${this.state.date.toISOString()}&amount=${this.state.amount}`)
 			.then(response => response.json())
 			.then(data => this.setState({
-				convertedValue: data
+				convertedValue: data.toFixed(2)
 			}));
 
 		fetch(`/Rates/StoreStats?currencyName=${this.state.sourceCurrency}&conversionDate=${(new Date()).toISOString()}`);
 	}
 
 	switchCurrencies() {
+		if (this.state.sourceCurrency == "---")
+			return;
 		this.setState({
 			sourceCurrency: this.state.destinationCurrency,
 			destinationCurrency: this.state.sourceCurrency

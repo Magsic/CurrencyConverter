@@ -24,7 +24,7 @@ namespace CurrencyConverter
 		{
 			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-			var connection = @"Server=(localdb)\mssqllocaldb;Database=CurrencyConverter.AspNetCore.Db;Trusted_Connection=True;ConnectRetryCount=0";
+			var connection = @"Server=.\SQLEXPRESS;Database=CurrencyConverter.AspNetCore.Db;Integrated Security=True;";
 
 			services.AddDbContext<CurrencyContext>(options => options.UseSqlServer(connection));
 
